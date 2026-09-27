@@ -19,6 +19,13 @@ function App() {
       return 0;
     }
   });
+  const [bestScore, setBestScore] = useState<number>(()=>{
+    let savedScore = localStorage.getItem("bestScore");
+    if(savedScore != null) return JSON.parse(savedScore);
+    else {
+      return 0;
+    }
+  });
 
   function Restart(){
     setGameBoard(NewBlock([[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]));
@@ -172,10 +179,18 @@ function App() {
     localStorage.setItem("score", JSON.stringify(score));
   }, [gameBoard, score])
 
+  useEffect(()=>{
+    if(score > bestScore){   
+      setBestScore(score); 
+      localStorage.setItem("score", JSON.stringify(score));
+    }
+  }, [score])
+
   return (
     <main>
       <h1>2048 Game</h1>
       <div id="ScoreText">Score: {score}</div>
+      <div id="BestScoreText">Best Score: {bestScore}</div>
       <div id="GameBoard">
         {
           gameBoard.map(row => {
