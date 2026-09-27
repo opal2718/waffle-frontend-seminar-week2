@@ -2,10 +2,27 @@ import "./App.css";
 import {useState, useEffect} from "react";
 
 function App() {
-  const [gameBoard, setGameBoard] = useState<number[][]>([[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]);
-  const [score, setScore] = useState<number>(0);
+  const [gameBoard, setGameBoard] = useState<number[][]>(()=>{
+    let savedBoard = localStorage.getItem("gameBoard");
+    if(savedBoard != null) return JSON.parse(savedBoard);
+    else {
+      let newBoard = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
+      let newPos = Math.floor(Math.random()*16);
+      newBoard[Math.floor(newPos/4)][newPos%4] = 2;
+      return newBoard;
+    }
+  });
+  const [score, setScore] = useState<number>(()=>{
+    let savedScore = localStorage.getItem("score");
+    if(savedScore != null) return JSON.parse(savedScore);
+    else {
+      return 0;
+    }
+  });
+
   function Restart(){
-    setGameBoard(NewBlock([[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]], false));
+    setGameBoard(NewBlock([[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]));
+    setScore(0);
   }
 
   function GameOver(successful:boolean){
@@ -20,11 +37,29 @@ function App() {
   function AddScore(newTile:number){
     setScore(score => score+newTile);
     if(newTile == 128){
-      GameOver(true);
+      return true;
     }
+    return false;
   }
-
-  function NewBlock(board: number[][], checkOnly:boolean){
+  function CheckOver(board: number[][]){
+    let directions = [[0,1],[0,-1],[1,0],[-1,0]]
+    for(let i = 0; i < 4; i++){
+      for(let j = 0; j < 4; j++){
+        let thisV = board[i][j];
+        if(thisV == 0) return false;
+        for(let k = 0; k < 4; k++){
+          let dx = i+directions[k][0];
+          let dy = j+directions[k][1];
+          if(dx < 0 || dx >= 4 || dy < 0 || dy >= 4) continue;
+          if(thisV == board[dx][dy]) {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
+  function NewBlock(board: number[][]){
     let blanks = [];
     let newGameBoard = board.map(row => [...row]);
 
@@ -35,10 +70,9 @@ function App() {
       }
     }
     if(blanks.length <= 0){
-      GameOver(false);
+      //if(CheckOver(board)) GameOver(false);
     }
     else{
-      if(checkOnly) return newGameBoard;
       let newPos = blanks[Math.floor(Math.random()*blanks.length)];
       newGameBoard[Math.floor(newPos/4)][newPos%4] = 2;
     }      
@@ -48,10 +82,13 @@ function App() {
   function MoveBoard(x: number, y:number){
     let newGameBoard = gameBoard.map(row=>[...row]);
     let changed = false;
+    let successful = false;
     let d = x;
     if(x ==0) d = y;
-    NewBlock(newGameBoard, true);
-    if(true){
+    if (CheckOver(newGameBoard)){
+      GameOver(false);
+    }
+    else{
       for(let ii = 0; ii < 4; ii++){
         let this_line = [];
         for(let jj = 0; jj < 4; jj++){
@@ -68,7 +105,7 @@ function App() {
           if(this_line[kk]==this_line[kk-d]){
             this_line[kk] *=2;
             this_line[kk-d] = 0;
-            AddScore(this_line[kk]);
+            successful = AddScore(this_line[kk])?true:successful;
           }
         }
         this_line = this_line.filter(v => v>0);
@@ -97,8 +134,11 @@ function App() {
       }
     }
     if(changed){
-      newGameBoard = NewBlock(newGameBoard, false);
+      newGameBoard = NewBlock(newGameBoard);
       setGameBoard(newGameBoard);
+      if(successful){
+        GameOver(true);
+      }
     }
   }
   
@@ -117,13 +157,20 @@ function App() {
         case "ArrowLeft":
           MoveBoard(-1,0);
           break;
+        case "D":
+          localStorage.clear();
+          Restart();
+          break;
       }
     }
     window.addEventListener("keydown", onKeyboardInput);
     return (()=>window.removeEventListener("keydown", onKeyboardInput));
-  },[gameBoard])
+  },[gameBoard]);
 
-  useEffect(()=>{Restart();},[]);
+  useEffect(()=>{
+    localStorage.setItem("gameBoard", JSON.stringify(gameBoard));
+    localStorage.setItem("score", JSON.stringify(score));
+  }, [gameBoard, score])
 
   return (
     <main>
