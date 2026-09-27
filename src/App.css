@@ -51,20 +51,20 @@ p {
 
 
 .block_2{
-  background-color: rgb(198, 235, 255);
+  background-color: rgb(200, 235, 255);
 }
 .block_4{
-  background-color: rgb(181, 228, 253);
+  background-color: rgb(160, 228, 253);
 }
 .block_8{
-  background-color: rgb(163, 221, 252);
+  background-color: rgb(120, 221, 252);
 }
 .block_16{
-  background-color: rgb(143, 213, 251);
+  background-color: rgb(80, 213, 251);
 }
 .block_32{
-  background-color: rgb(122, 207, 252);
+  background-color: rgb(40, 207, 252);
 }
 .block_64{
-  background-color: rgb(95, 197, 252);
+  background-color: rgb(0, 197, 252);
 }
